@@ -1,0 +1,5 @@
+<launch>
+
+    <node pkg="mud_rov" type="controller_node" name="controller_node"/>
+
+</launch
