@@ -1,5 +1,5 @@
 <launch>
 
-    <node pkg="mud_rov" type="controller_node" name="controller_node"/>
+    <node pkg="mud_rov" type="controller_node.py" name="controller_node"/>
 
-</launch
+</launch>

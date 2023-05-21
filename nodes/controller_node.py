@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 ''' Ros module '''
 import rospy
@@ -58,7 +58,7 @@ class ControllerNode:
     def control_callback(self, event):
         thrust_values = [0, 0, 0, 0, 0, 0] # TODO
         self.set_thrusters(thrust_values)
-
+        print("Test")
 
 def main():
     try: 
