@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 ''' Ros module '''
 import rospy
@@ -23,12 +23,14 @@ class ControllerNode:
 
     def __init__(self):
         rospy.init_node('controller_node', anonymous=True)
-
-        self.t_control = 0.02 # control period [s] - limited by esc 50Hz
-        self.control_timer = rospy.Timer(rospy.Duration(self.t_control), self.control_callback)
         
         self.pwm_driver = self.init_pwmdriver()
         self.imu = self.init_imu()
+
+        ''' Done last to ensure all other initializations are done'''
+        self.t_control = 0.02 # control period [s] - limited by esc 50Hz
+        self.control_timer = rospy.Timer(rospy.Duration(self.t_control), self.control_callback)
+        
 
     def init_pwmdriver(self):
         min_pw = 1000 # minimum pulsewidth [us]
