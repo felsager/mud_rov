@@ -43,6 +43,7 @@ class ControllerNode:
         ''' Done last to ensure all other initializations are done'''
         self.t_control = 0.02 # control period [s] - limited by esc 50Hz - delta t
         self.rate_control = int(1/self.t_control)
+        print('Rate control = ' + self.rate_control)
         self.control_timer = rospy.Timer(rospy.Duration(self.t_control), self.control_callback)
         self.joystick_sub = rospy.Subscriber('joy', Joy, callback=self.joystick_callback, queue_size=10)
 
@@ -80,7 +81,7 @@ class ControllerNode:
     def control_callback(self, event):
         thrust_inputs = [0, 0, 0, 0, 0, 0] # TODO
         self.set_thrusters(thrust_inputs)
-        print("Test")
+        #print("Test")
 
     def joystick_callback(self, data):
         left_stick_horz = data.axes[0]
