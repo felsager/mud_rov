@@ -32,9 +32,10 @@ class ControllerNode:
         
         self.t_control = 0.02 # control period [s] - limited by esc 50Hz - delta t
         self.rate_control = int(1/self.t_control)
-
+        
         self.pwm_driver = self.init_pwm_driver()
         self.imu = self.init_imu()
+        self.init_esc()
 
         ''' Desired state '''
         self.pos_x_des = 0 # [m/s] forward velocity - left stick vertical
@@ -56,12 +57,14 @@ class ControllerNode:
         pwm_driver = ServoKit(channels=no_chnls, i2c=i2c_0)
         for i in range(no_chnls):
             pwm_driver.continuous_servo[i].set_pulse_width_range(min_pw, max_pw)    
+        return pwm_driver
+    
+    def init_esc(self):
         rate = rospy.Rate(self.rate_control)
         N = int(5/self.t_control) # number of iterations to initialize esc (5s)
         for i in range(N):
             self.set_thrusters([0, 0, 0, 0, 0, 0])
             rate.sleep()
-        return pwm_driver
 
     def set_thrusters(self, thrust_inputs):
         for t in range(len(thrust_inputs)):
@@ -106,11 +109,7 @@ class ControllerNode:
         return angle%(-np.sign(angle))
     
     def killswitch(self):
-        rate = rospy.Rate(self.rate_control)
-        N = int(5/self.t_control)
-        for i in range(N):
-            self.set_thrusters([0, 0, 0, 0, 0, 0])
-            rate.sleep()
+        self.init_esc()
         rospy.signal_shutdown("Killed")
 
     # TODO - add function to calculate error between desired and actual state
