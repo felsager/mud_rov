@@ -45,7 +45,7 @@ class ControllerNode:
         self.pitch_des = 0 # [rad] pitch angle - right stick vertical
 
         ''' Done last to ensure all other initializations are done'''
-        print('Rate control = ' + self.rate_control)
+        print('Rate control = ', self.rate_control)
         self.control_timer = rospy.Timer(rospy.Duration(self.t_control), self.control_callback)
         self.joystick_sub = rospy.Subscriber('joy', Joy, callback=self.joystick_callback, queue_size=10)
 
