@@ -109,6 +109,7 @@ class ControllerNode:
         print("pitch_des = ", self.pitch_des)
         if angle != 0:
             angle = angle % (-np.sign(angle))
+            print("angle = ", angle)
         return angle
     
     def killswitch(self):
