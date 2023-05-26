@@ -106,7 +106,7 @@ class ControllerNode:
         if data.buttons[2] == 1:
             self.killswitch()
 
-    def saturate_angles(angle): # normalized angle to [-1, 1]
+    def saturate_angles(self, angle): # normalized angle to [-1, 1]
         return angle%(-np.sign(angle))
     
     def killswitch(self):
