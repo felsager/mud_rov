@@ -107,7 +107,8 @@ class ControllerNode:
 
     def saturate_angles(self, angle): # normalized angle to [-1, 1]
         print("pitch_des = ", self.pitch_des)
-        angle = angle % (-np.sign(angle))
+        if angle != 0:
+            angle = angle % (-np.sign(angle))
         return angle
     
     def killswitch(self):
