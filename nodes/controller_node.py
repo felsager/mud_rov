@@ -96,7 +96,6 @@ class ControllerNode:
         self.pitch_des += self.t_control*right_stick_vert
         self.roll_des += self.t_control*right_stick_horz
         self.yaw_des += self.t_control*left_stick_horz
-        print("pitch_des = ", self.pitch_des)
         self.pitch_des = self.saturate_angles(self.pitch_des)
         self.roll_des = self.saturate_angles(self.roll_des)
         self.yaw_des = self.saturate_angles(self.yaw_des)
@@ -107,7 +106,9 @@ class ControllerNode:
             self.killswitch()
 
     def saturate_angles(self, angle): # normalized angle to [-1, 1]
-        return angle%(-np.sign(angle))
+        print("pitch_des = ", self.pitch_des)
+        angle = angle % (-np.sign(angle))
+        return angle
     
     def killswitch(self):
         self.init_esc()
