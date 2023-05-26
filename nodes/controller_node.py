@@ -30,6 +30,9 @@ class ControllerNode:
     def __init__(self):
         rospy.init_node('controller_node', anonymous=True)
         
+        self.t_control = 0.02 # control period [s] - limited by esc 50Hz - delta t
+        self.rate_control = int(1/self.t_control)
+        
         self.pwm_driver = self.init_pwm_driver()
         self.imu = self.init_imu()
 
@@ -41,8 +44,6 @@ class ControllerNode:
         self.pitch_des = 0 # [rad] pitch angle - right stick vertical
 
         ''' Done last to ensure all other initializations are done'''
-        self.t_control = 0.02 # control period [s] - limited by esc 50Hz - delta t
-        self.rate_control = int(1/self.t_control)
         print('Rate control = ' + self.rate_control)
         self.control_timer = rospy.Timer(rospy.Duration(self.t_control), self.control_callback)
         self.joystick_sub = rospy.Subscriber('joy', Joy, callback=self.joystick_callback, queue_size=10)
