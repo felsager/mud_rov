@@ -120,7 +120,7 @@ class ControllerNode:
     
     def actuator_filter(self, thrust_inputs, pre_thrust_inputs):
         ''' Actuator filter '''
-        alpha = 0.95
+        alpha = 0.986 # time constant of ~ 1.4s
         filtered_thrust_inputs = (1 - alpha)*thrust_inputs + alpha*pre_thrust_inputs
         return filtered_thrust_inputs
 
