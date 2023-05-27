@@ -98,7 +98,7 @@ class ControllerNode:
         thrust_inputs = self.thrust_allocation(self.F_x, 
             self.F_z, self.tau_r, self.tau_p, self.tau_y)
         self.set_thrusters(thrust_inputs)
-        print(f'thrust inputs = {thrust_inputs}')
+        print(f'thrust inputs = {np.round(thrust_inputs, 3)}')
 
     def thrust_allocation(self, F_x, F_z, M_roll, M_pitch, M_yaw):
         ''' Thrust allocation '''
