@@ -100,11 +100,17 @@ class ControllerNode:
         self.pitch_des += dt*joy_state.axes[4] # right_stick_vert
         self.roll_des += dt*joy_state.axes[3] # right_stick_horz
         self.yaw_des += dt*joy_state.axes[0] # left_stick_horz
+        print("pos_x_des = ", self.pos_x_des)
+        print("pos_z_des = ", self.pos_z_des)
         print("pitch_des = ", self.pitch_des)
+        print("roll_des = ", self.roll_des)
+        print("yaw_des = ", self.yaw_des)
         self.pitch_des = self.wrap_angle(self.pitch_des)
         self.roll_des = self.wrap_angle(self.roll_des)
         self.yaw_des = self.wrap_angle(self.yaw_des)
-        print("pitch_des_sat = ", self.pitch_des)
+        print("pitch_des_wrap = ", self.pitch_des)
+        print("roll_des_wrap = ", self.roll_des)
+        print("yaw_des_wrap = ", self.yaw_des)
         # TODO : add scaling and saturation to desired state
 
     def wrap_angle(self, angle): # wrap angle to the range [-1, 1]
