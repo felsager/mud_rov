@@ -35,7 +35,7 @@ class ControllerNode:
         self.rate_control = int(1/self.t_control)
         
         self.T_alloc = np.array([
-            [0, 0, 0, 0, 0.5, 0.5],  # F_x - scale by 2 to get max thrust
+            [0, 0, 0, 0, 1, 1],  # F_x - scale by 2 to get max thrust
             [0.25, 0.25, 0.25, 0.25, 0, 0],  # F_z - scale by 4 to get max thrust
             [-0.217, 0.217, -0.217, 0.217, 0, 0],  # M_roll
             [-0.152, -0.152, 0.152, 0.152, 0, 0],  # M_pitch
@@ -53,6 +53,8 @@ class ControllerNode:
         self.tau_r = 0 # [rad/s] roll rate - right stick horizontal
         self.tau_p = 0 # [rad/s] pitch rate - right stick vertical
         self.tau_y = 0 # [rad/s] yaw rate - left stick horizontal
+
+        self.pre_thrust_inputs = np.zeros(6) # previous thruster values
 
         self.joy_state = Joy()
         self.joy_state.axes = [0, 0, 0, 0, 0, 0, 0, 0]
@@ -81,6 +83,7 @@ class ControllerNode:
             rate.sleep()
 
     def set_thrusters(self, thrust_inputs):
+        thrust_inputs = np.clip(thrust_inputs, -1, 1)
         for t in range(len(thrust_inputs)):
             self.pwm_driver.continuous_servo[t].throttle = thrust_inputs[t]
 
@@ -97,7 +100,10 @@ class ControllerNode:
         self.update_desired_state(self.joy_state)
         thrust_inputs = self.thrust_allocation(self.F_x, 
             self.F_z, self.tau_r, self.tau_p, self.tau_y)
+        thrust_inputs = self.actuator_filter(thrust_inputs, 
+                                             self.pre_thrust_inputs)
         self.set_thrusters(thrust_inputs)
+        self.pre_thrust_inputs = thrust_inputs
         print(f'thrust inputs = {np.round(thrust_inputs, 3)}')
 
     def thrust_allocation(self, F_x, F_z, M_roll, M_pitch, M_yaw):
@@ -110,8 +116,13 @@ class ControllerNode:
         problem = cx.Problem(objective, constraints)
         problem.solve()
         thrust_inputs = thruster_values.value
-        thrust_inputs = np.clip(thrust_inputs, -1, 1)
         return thrust_inputs
+    
+    def actuator_filter(self, thrust_inputs, pre_thrust_inputs):
+        ''' Actuator filter '''
+        alpha = 0.95
+        filtered_thrust_inputs = (1 - alpha)*thrust_inputs + alpha*pre_thrust_inputs
+        return filtered_thrust_inputs
 
     def joystick_callback(self, data):
         self.joy_state = data
