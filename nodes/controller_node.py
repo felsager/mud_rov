@@ -5,6 +5,7 @@ import rospy
 
 ''' Math modules '''
 import numpy as np
+import cvxpy as cx
 
 ''' Timing module '''
 import time
@@ -33,16 +34,25 @@ class ControllerNode:
         self.t_control = 0.02 # control period [s] - limited by esc 50Hz - delta t
         self.rate_control = int(1/self.t_control)
         
+        self.T_alloc = np.array([
+            [0, 0, 0, 0, 1, 1],  # F_x
+            [1, 1, 1, 1, 0, 0],  # F_z
+            [-0.217, 0.217, -0.217, 0.217, 0, 0],  # M_roll
+            [0.152, 0.152, -0.152, -0.152, 0, 0],  # M_pitch
+            [-0.189, 0.189, 0.189, -0.189, -0.185, 0.185]  # M_yaw
+        ])
+        self.T_alloc_pinv = np.linalg.pinv(self.T_alloc) # inverse of thruster allocation matrix
+
         self.pwm_driver = self.init_pwm_driver()
         self.imu = self.init_imu()
         self.init_esc()
 
         ''' Desired state '''
-        self.vel_x = 0 # [m/s] forward velocity - left stick vertical
-        self.vel_z = 0 # [m/s] vertical velocity - triggers
-        self.r_rate = 0 # [rad/s] roll rate - right stick horizontal
-        self.p_rate = 0 # [rad/s] pitch rate - right stick vertical
-        self.y_rate = 0 # [rad/s] yaw rate - left stick horizontal
+        self.F_x = 0 # [m/s] forward velocity - left stick vertical
+        self.F_z = 0 # [m/s] vertical velocity - triggers
+        self.tau_r = 0 # [rad/s] roll rate - right stick horizontal
+        self.tau_p = 0 # [rad/s] pitch rate - right stick vertical
+        self.tau_y = 0 # [rad/s] yaw rate - left stick horizontal
 
         self.joy_state = Joy()
         self.joy_state.axes = [0, 0, 0, 0, 0, 0, 0, 0]
@@ -85,14 +95,21 @@ class ControllerNode:
     
     def control_callback(self, event):
         self.update_desired_state(self.joy_state)
-        thrust_inputs = self.thrust_allocation(self.vel_x, 
-            self.vel_z, self.r_rate, self.p_rate, self.y_rate)
+        thrust_inputs = self.thrust_allocation(self.F_x, 
+            self.F_z, self.tau_r, self.tau_p, self.tau_y)
         self.set_thrusters(thrust_inputs)
-        #print("Test")
+        print(f'thrust inputs = {thrust_inputs}')
 
-    def thrust_allocation(self, vel_x, vel_z, r_rate, p_rate, y_rate):
-        
-        thrust_inputs = [0, 0, 0, 0, 0, 0]
+    def thrust_allocation(self, F_x, F_z, M_roll, M_pitch, M_yaw):
+        ''' Thrust allocation '''
+        desired_force_torque = np.array([F_x, F_z, M_roll, M_pitch, M_yaw])
+        initial_thruster_values = self.T_alloc_pinv @ desired_force_torque
+        thruster_values = cx.Variable(6) # 6 thrusters
+        objective = cx.Minimize(cx.norm(self.T_alloc @ thruster_values - desired_force_torque, "inf"))
+        constraints = [thruster_values >= -1, thruster_values <= 1]
+        problem = cx.Problem(objective, constraints)
+        problem.solve()
+        thrust_inputs = thruster_values.value
         return thrust_inputs
 
     def joystick_callback(self, data):
@@ -101,16 +118,11 @@ class ControllerNode:
             self.killswitch()
 
     def update_desired_state(self, joy_state):
-        self.vel_x = joy_state.axes[1] # maybe need to flip sign - left_stick_vert
-        self.vel_z = (joy_state.axes[2] - joy_state.axes[5])/2 # left_trigger - right_trigger
-        self.r_rate = joy_state.axes[3] # right_stick_horz - roll rate
-        self.p_rate = joy_state.axes[4] # right_stick_vert - pitch rate
-        self.y_rate = joy_state.axes[0] # left_stick_horz - yaw rate
-        print("vel_x = ", self.vel_x)
-        print("vel_z = ", self.vel_z)
-        print("p_rate = ", self.p_rate)
-        print("r_rate = ", self.r_rate)
-        print("yrate = ", self.y_rate)
+        self.F_x = joy_state.axes[1] # maybe need to flip sign - left_stick_vert
+        self.F_z = (joy_state.axes[2] - joy_state.axes[5])/2 # left_trigger - right_trigger
+        self.tau_r = joy_state.axes[3] # right_stick_horz - roll rate
+        self.tau_p = joy_state.axes[4] # right_stick_vert - pitch rate
+        self.tau_y = joy_state.axes[0] # left_stick_horz - yaw rate
     
     def killswitch(self):
         self.init_esc()
