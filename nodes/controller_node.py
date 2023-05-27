@@ -45,11 +45,11 @@ class ControllerNode:
         self.pitch_des = 0 # [rad] pitch angle - right stick vertical
 
         self.joy_state = Joy()
+        self.joystick_sub = rospy.Subscriber('joy', Joy, callback=self.joystick_callback, queue_size=10)
 
         ''' Done last to ensure all other initializations are done'''
         print('Rate control = ', self.rate_control)
         self.control_timer = rospy.Timer(rospy.Duration(self.t_control), self.control_callback)
-        self.joystick_sub = rospy.Subscriber('joy', Joy, callback=self.joystick_callback, queue_size=10)
 
     def init_pwm_driver(self):
         min_pw = 1000 # minimum pulsewidth [us]
