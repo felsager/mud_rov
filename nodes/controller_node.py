@@ -38,7 +38,7 @@ class ControllerNode:
             [0, 0, 0, 0, 0.5, 0.5],  # F_x - scale by 2 to get max thrust
             [0.25, 0.25, 0.25, 0.25, 0, 0],  # F_z - scale by 4 to get max thrust
             [-0.217, 0.217, -0.217, 0.217, 0, 0],  # M_roll
-            [0.152, 0.152, -0.152, -0.152, 0, 0],  # M_pitch
+            [-0.152, -0.152, 0.152, 0.152, 0, 0],  # M_pitch
             [0, 0, 0, 0, -0.185, 0.185]  # M_yaw - only controlled by two horizontal thrusters
         ])
         self.T_alloc_pinv = np.linalg.pinv(self.T_alloc) # inverse of thruster allocation matrix
