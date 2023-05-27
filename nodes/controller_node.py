@@ -122,6 +122,9 @@ class ControllerNode:
         ''' Actuator filter '''
         alpha = 0.986 # time constant of ~ 1.4s
         filtered_thrust_inputs = (1 - alpha)*thrust_inputs + alpha*pre_thrust_inputs
+        for i in range(len(filtered_thrust_inputs)):
+            if abs(filtered_thrust_inputs[i]) < 0.05:
+                filtered_thrust_inputs[i] = 0
         return filtered_thrust_inputs
 
     def joystick_callback(self, data):
