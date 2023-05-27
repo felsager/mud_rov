@@ -44,6 +44,8 @@ class ControllerNode:
         self.roll_des = 0 # [rad] roll angle - right stick horizontal
         self.pitch_des = 0 # [rad] pitch angle - right stick vertical
 
+        self.joy_state = Joy()
+
         ''' Done last to ensure all other initializations are done'''
         print('Rate control = ', self.rate_control)
         self.control_timer = rospy.Timer(rospy.Duration(self.t_control), self.control_callback)
@@ -80,32 +82,28 @@ class ControllerNode:
         return MPU9250(mpu, ak)
     
     def control_callback(self, event):
+        self.update_desired_state(self.t_control, self.joy_state)
         thrust_inputs = [0, 0, 0, 0, 0, 0] # TODO
         self.set_thrusters(thrust_inputs)
         #print("Test")
 
     def joystick_callback(self, data):
-        left_stick_horz = data.axes[0]
-        left_stick_vert = data.axes[1]
-        left_trigger = data.axes[2]
-        right_stick_horz = data.axes[3]
-        right_stick_vert = data.axes[4]
-        right_trigger = data.axes[5]
-        self.pos_x_des += self.t_control*left_stick_vert # maybe need to flip sign
-        self.pos_z_des += self.t_control*(left_trigger - right_trigger)/2
-        self.pitch_des += self.t_control*right_stick_vert
-        self.roll_des += self.t_control*right_stick_horz
-        self.yaw_des += self.t_control*left_stick_horz
-        print("pitch_des = ", self.pitch_des)
-        self.pitch_des = self.saturate_angles(self.pitch_des)
-        print("angle = ", self.pitch_des)
-        self.roll_des = self.saturate_angles(self.roll_des)
-        self.yaw_des = self.saturate_angles(self.yaw_des)
-
-        # TODO : add scaling and saturation to desired state
-
+        self.joy_state = data
         if data.buttons[2] == 1:
             self.killswitch()
+
+    def update_desired_state(self, dt, joy_state):
+        self.pos_x_des += dt*joy_state.axes[1] # maybe need to flip sign - left_stick_vert
+        self.pos_z_des += dt*(joy_state.axes[2] - joy_state.axes[5])/2 # left_trigger - right_trigger
+        self.pitch_des += dt*joy_state.axes[4] # right_stick_vert
+        self.roll_des += dt*joy_state.axes[3] # right_stick_horz
+        self.yaw_des += dt*joy_state.axes[0] # left_stick_horz
+        print("pitch_des = ", self.pitch_des)
+        self.pitch_des = self.saturate_angles(self.pitch_des)
+        self.roll_des = self.saturate_angles(self.roll_des)
+        self.yaw_des = self.saturate_angles(self.yaw_des)
+        print("pitch_des_sat = ", self.pitch_des)
+        # TODO : add scaling and saturation to desired state
 
     def saturate_angles(self, angle): # normalized angle to [-1, 1]
         if angle != 0:
