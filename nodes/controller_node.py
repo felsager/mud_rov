@@ -38,11 +38,11 @@ class ControllerNode:
         self.init_esc()
 
         ''' Desired state '''
-        self.pos_x_des = 0 # [m/s] forward velocity - left stick vertical
-        self.yaw_des = 0 # [rad] yaw angle - left stick horizontal
-        self.pos_z_des = 0 # [m/s] vertical velocity - triggers
-        self.roll_des = 0 # [rad] roll angle - right stick horizontal
-        self.pitch_des = 0 # [rad] pitch angle - right stick vertical
+        self.vel_x = 0 # [m/s] forward velocity - left stick vertical
+        self.vel_z = 0 # [m/s] vertical velocity - triggers
+        self.r_rate = 0 # [rad/s] roll rate - right stick horizontal
+        self.p_rate = 0 # [rad/s] pitch rate - right stick vertical
+        self.y_rate = 0 # [rad/s] yaw rate - left stick horizontal
 
         self.joy_state = Joy()
         self.joy_state.axes = [0, 0, 0, 0, 0, 0, 0, 0]
@@ -51,7 +51,7 @@ class ControllerNode:
 
         ''' Done last to ensure all other initializations are done'''
         print('Rate control = ', self.rate_control)
-        self.control_timer = rospy.Timer(rospy.Duration(self.t_control), self.control_callback)
+        self.control_loop = rospy.Timer(rospy.Duration(self.t_control), self.control_callback)
 
     def init_pwm_driver(self):
         min_pw = 1000 # minimum pulsewidth [us]
@@ -84,46 +84,39 @@ class ControllerNode:
         return MPU9250(mpu, ak)
     
     def control_callback(self, event):
-        self.update_desired_state(self.t_control, self.joy_state)
-        thrust_inputs = [0, 0, 0, 0, 0, 0] # TODO
+        self.update_desired_state(self.joy_state)
+        thrust_inputs = self.thrust_allocation(self.vel_x, 
+            self.vel_z, self.r_rate, self.p_rate, self.y_rate)
         self.set_thrusters(thrust_inputs)
         #print("Test")
+
+    def thrust_allocation(self, vel_x, vel_z, r_rate, p_rate, y_rate):
+        
+        thrust_inputs = [0, 0, 0, 0, 0, 0]
+        return thrust_inputs
 
     def joystick_callback(self, data):
         self.joy_state = data
         if data.buttons[2] == 1:
             self.killswitch()
 
-    def update_desired_state(self, dt, joy_state):
-        self.pos_x_des += dt*joy_state.axes[1] # maybe need to flip sign - left_stick_vert
-        self.pos_z_des += dt*(joy_state.axes[2] - joy_state.axes[5])/2 # left_trigger - right_trigger
-        self.pitch_des += dt*joy_state.axes[4] # right_stick_vert
-        self.roll_des += dt*joy_state.axes[3] # right_stick_horz
-        self.yaw_des += dt*joy_state.axes[0] # left_stick_horz
-        print("pos_x_des = ", self.pos_x_des)
-        print("pos_z_des = ", self.pos_z_des)
-        print("pitch_des = ", self.pitch_des)
-        print("roll_des = ", self.roll_des)
-        print("yaw_des = ", self.yaw_des)
-        self.pitch_des = self.wrap_angle(self.pitch_des)
-        self.roll_des = self.wrap_angle(self.roll_des)
-        self.yaw_des = self.wrap_angle(self.yaw_des)
-        print("pitch_des_wrap = ", self.pitch_des)
-        print("roll_des_wrap = ", self.roll_des)
-        print("yaw_des_wrap = ", self.yaw_des)
-        # TODO : add scaling and saturation to desired state
-
-    def wrap_angle(self, angle): # wrap angle to the range [-1, 1]
-        return np.mod(angle + 1, 2) - 1
+    def update_desired_state(self, joy_state):
+        self.vel_x = joy_state.axes[1] # maybe need to flip sign - left_stick_vert
+        self.vel_z = (joy_state.axes[2] - joy_state.axes[5])/2 # left_trigger - right_trigger
+        self.r_rate = joy_state.axes[3] # right_stick_horz - roll rate
+        self.p_rate = joy_state.axes[4] # right_stick_vert - pitch rate
+        self.y_rate = joy_state.axes[0] # left_stick_horz - yaw rate
+        print("vel_x = ", self.vel_x)
+        print("vel_z = ", self.vel_z)
+        print("p_rate = ", self.p_rate)
+        print("r_rate = ", self.r_rate)
+        print("yrate = ", self.y_rate)
     
     def killswitch(self):
         self.init_esc()
         rospy.signal_shutdown("Killed")
 
-    # TODO - add function to calculate error between desired and actual state
-    # TODO - add function to calculate thrust inputs from error - remember to saturate and scale according to thruster locations
-    # TODO - add function to estimate actual state from imu data
-
+ 
 def main():
     try: 
         controller_node = ControllerNode()
