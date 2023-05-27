@@ -35,8 +35,8 @@ class ControllerNode:
         self.rate_control = int(1/self.t_control)
         
         self.T_alloc = np.array([
-            [0, 0, 0, 0, 2, 2],  # F_x - scale by 2 to get max thrust
-            [4, 4, 4, 4, 0, 0],  # F_z - scale by 4 to get max thrust
+            [0, 0, 0, 0, 0.5, 0.5],  # F_x - scale by 2 to get max thrust
+            [0.25, 0.25, 0.25, 0.25, 0, 0],  # F_z - scale by 4 to get max thrust
             [-0.217, 0.217, -0.217, 0.217, 0, 0],  # M_roll
             [0.152, 0.152, -0.152, -0.152, 0, 0],  # M_pitch
             [-0.189, 0.189, 0.189, -0.189, -0.185, 0.185]  # M_yaw
