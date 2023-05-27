@@ -123,7 +123,7 @@ class ControllerNode:
         alpha = 0.986 # time constant of ~ 1.4s
         filtered_thrust_inputs = (1 - alpha)*thrust_inputs + alpha*pre_thrust_inputs
         for i in range(len(filtered_thrust_inputs)): # deadband
-            if abs(thrust_inputs[i]) < abs(pre_thrust_inputs[i]) and filtered_thrust_inputs < 0.05:
+            if abs(thrust_inputs[i]) < abs(pre_thrust_inputs[i]) and filtered_thrust_inputs[i] < 0.05:
                 filtered_thrust_inputs[i] = 0
         return filtered_thrust_inputs
 
