@@ -45,6 +45,8 @@ class ControllerNode:
         self.pitch_des = 0 # [rad] pitch angle - right stick vertical
 
         self.joy_state = Joy()
+        self.joy_state.axes = [0, 0, 0, 0, 0, 0, 0, 0]
+        self.joy_state.buttons = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         self.joystick_sub = rospy.Subscriber('joy', Joy, callback=self.joystick_callback, queue_size=10)
 
         ''' Done last to ensure all other initializations are done'''
