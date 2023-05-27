@@ -93,6 +93,7 @@ class ControllerNode:
             self.killswitch()
 
     def update_desired_state(self, dt, joy_state):
+        print(joy_state)
         self.pos_x_des += dt*joy_state.axes[1] # maybe need to flip sign - left_stick_vert
         self.pos_z_des += dt*(joy_state.axes[2] - joy_state.axes[5])/2 # left_trigger - right_trigger
         self.pitch_des += dt*joy_state.axes[4] # right_stick_vert
