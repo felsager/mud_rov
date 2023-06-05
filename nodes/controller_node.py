@@ -82,19 +82,19 @@ class ControllerNode:
             self.set_thrusters([0, 1, 1, 1, 1, 1])
             rate.sleep()
         for i in range(N):
-            self.set_thrusters([1, 0, 1, 1, 1, 1])
+            self.set_thrusters([0, 0, 1, 1, 1, 1])
             rate.sleep()
         for i in range(N):
-            self.set_thrusters([1, 1, 0, 1, 1, 1])
+            self.set_thrusters([0, 0, 0, 1, 1, 1])
             rate.sleep()
         for i in range(N):
-            self.set_thrusters([1, 1, 1, 0, 1, 1])
+            self.set_thrusters([0, 0, 0, 0, 1, 1])
             rate.sleep()
         for i in range(N):
-            self.set_thrusters([1, 1, 1, 1, 0, 1])
+            self.set_thrusters([0, 0, 0, 0, 0, 1])
             rate.sleep()
         for i in range(N):
-            self.set_thrusters([1, 1, 1, 1, 1, 0])
+            self.set_thrusters([0, 0, 0, 0, 0, 0])
             rate.sleep()
 
     def set_thrusters(self, thrust_inputs):
