@@ -77,9 +77,24 @@ class ControllerNode:
     
     def init_esc(self):
         rate = rospy.Rate(self.rate_control)
-        N = int(5/self.t_control) # number of iterations to initialize esc (5s)
+        N = int(10/self.t_control) # number of iterations to initialize esc (5s)
         for i in range(N):
-            self.set_thrusters([0, 0, 0, 0, 0, 0])
+            self.set_thrusters([0, 1, 1, 1, 1, 1])
+            rate.sleep()
+        for i in range(N):
+            self.set_thrusters([1, 0, 1, 1, 1, 1])
+            rate.sleep()
+        for i in range(N):
+            self.set_thrusters([1, 1, 0, 1, 1, 1])
+            rate.sleep()
+        for i in range(N):
+            self.set_thrusters([1, 1, 1, 0, 1, 1])
+            rate.sleep()
+        for i in range(N):
+            self.set_thrusters([1, 1, 1, 1, 0, 1])
+            rate.sleep()
+        for i in range(N):
+            self.set_thrusters([1, 1, 1, 1, 1, 0])
             rate.sleep()
 
     def set_thrusters(self, thrust_inputs):
